@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlyDreamAir - Your Journey Begins Here</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #d81b60;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .search-section,
+        .results-section,
+        .details-form,
+        .seat-selection,
+        .meal-selection-section {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: #d81b60;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .result-card,
+        .seat-card {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .result-card:last-child {
+            border-bottom: none;
+        }
+
+        .price-section .book-btn {
+            margin-top: 10px;
+            background-color: #d81b60;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .price-section .book-btn:hover {
+            background-color: #b71c1c;
+        }
+
+        .seat-map {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .seat {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .seat.selected {
+            background-color: #d81b60;
+            color: white;
+        }
+
+        .meal-options {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .meal-options div {
+            flex: 1 1 45%;
+            background-color: #f8f8f8;
+            padding: 10px;
+            margin: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .meal-options div.selected {
+            background-color: #d81b60;
+            color: white;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+    <script>
+        let selectedFlight;
+        let selectedSeat;
+        let selectedMealType = '';
+        let selectedMealOption = '';
+
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                from: params.get('from'),
+                to: params.get('to'),
+                departure: params.get('departure'),
+                returnDate: params.get('return'),
+                passengers: params.get('passengers')
+            };
+        }
+
+        function displayResults() {
+            const params = getQueryParams();
+            if (params.from && params.to && params.departure) {
+                document.querySelector('.search-section').style.display = 'none';
+                document.querySelector('.results-section').style.display = 'block';
+
+                // Example: Multiple flight times
+                const flights = [
+                    { time: "09:00 AM", price: 1919 },
+                    { time: "12:00 PM", price: 2019 },
+                    { time: "03:00 PM", price: 2119 }
+                ];
+
+                const resultsContainer = document.getElementById('flightResults');
+                resultsContainer.innerHTML = ''; // Clear any previous results
+                flights.forEach((flight, index) => {
+                    const flightCard = document.createElement('div');
+                    flightCard.className = 'result-card';
+                    flightCard.innerHTML = `
+                        <div>
+                            <h4>Flight: FlyDreamAir at ${flight.time}</h4>
+                            <p>From: ${params.from}</p>
+                            <p>To: ${params.to}</p>
+                            <p>Departure: ${params.departure}</p>
+                            <p>Return: ${params.returnDate ? params.returnDate : 'N/A'}</p>
+                            <p>Passengers: ${params.passengers}</p>
+                        </div>
+                        <div class="price-section">
+                            <h4 class="price">$${flight.price}</h4>
+                            <button class="book-btn" onclick="selectFlight(${index})">Book now</button>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(flightCard);
+                });
+            }
+        }
+
+        function selectFlight(index) {
+            selectedFlight = index;
+            document.querySelector('.results-section').style.display = 'none';
+            document.querySelector('.details-form').classList.remove('hide'); // Show details form
+        }
+
+        function selectSeat(seat) {
+            if (selectedSeat) {
+                selectedSeat.classList.remove('selected');
+            }
+            seat.classList.add('selected');
+            selectedSeat = seat;
+        }
+
+        function proceedToSeatSelection() {
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+            const dob = document.getElementById("dob").value;
+            const passportNumber = document.getElementById("passportNumber").value;
+
+            if (!firstName || !lastName || !dob || !passportNumber) {
+                alert("Please fill in all the required details.");
+                return;
+            }
+
+            document.querySelector('.details-form').classList.add('hide');
+            document.querySelector('.seat-selection').classList.remove('hide'); // Show seat selection
+        }
+
+        function proceedToMealSelection() {
+            if (!selectedSeat) {
+                alert("Please select a seat first.");
+                return;
+            }
+            document.querySelector('.seat-selection').classList.add('hide');
+            document.querySelector('.meal-selection-section').classList.remove('hide'); // Show meal selection
+        }
+
+        function selectMealType(type) {
+            selectedMealType = type;
+            document.querySelectorAll('.meal-options div').forEach(item => item.classList.remove('selected'));
+            document.getElementById(type).classList.add('selected');
+            showMealOptions(type);
+        }
+
+        function showMealOptions(type) {
+            const veganOptions = document.querySelector('.vegan-options');
+            const seafoodOptions = document.querySelector('.seafood-options');
+            const otherOptions = document.querySelector('.other-options');
+
+            veganOptions.classList.add('hide');
+            seafoodOptions.classList.add('hide');
+            otherOptions.classList.add('hide');
+
+            if (type === 'vegan') {
+                veganOptions.classList.remove('hide');
+            } else if (type === 'seafood') {
+                seafoodOptions.classList.remove('hide');
+            } else if (type === 'other') {
+                otherOptions.classList.remove('hide');
+            }
+        }
+
+        function selectMealOption(option) {
+            selectedMealOption = option;
+            document.querySelectorAll('.meal-option div').forEach(item => item.classList.remove('selected'));
+            document.getElementById(option).classList.add('selected');
+        }
+
+        function proceedToConfirm() {
+            if (!selectedMealType || !selectedMealOption) {
+                alert("Please select your meal and option.");
+                return;
+            }
+
+            alert(`Meal selected: ${selectedMealType}, Option: ${selectedMealOption}. Seat: ${selectedSeat.textContent}`);
+        }
+
+        window.onload = displayResults;
+    </script>
+</head>
+
+<body>
+    <header>
+        <h1>FlyDreamAir</h1>
+        <p>Your Journey Begins Here</p>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <h2>Search Flights</h2>
+        <form action="" method="GET">
+            <div class="form-group">
+                <label for="from">From:</label>
+                <input type="text" id="from" name="from" placeholder="Enter city or airport" required>
+            </div>
+            <div class="form-group">
+                <label for="to">To:</label>
+                <input type="text" id="to" name="to" placeholder="Enter city or airport" required>
+            </div>
+            <div class="form-group">
+                <label for="departure">Departure Date:</label>
+                <input type="date" id="departure" name="departure" required>
+            </div>
+            <div class="form-group">
+                <label for="return">Return Date:</label>
+                <input type="date" id="return" name="return">
+            </div>
+            <div class="form-group">
+                <label for="passengers">Passengers:</label>
+                <select id="passengers" name="passengers" required>
+                    <option value="1">1 Passenger</option>
+                    <option value="2">2 Passengers</option>
+                    <option value="3">3 Passengers</option>
+                    <option value="4">4 Passengers</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit">Search Flights</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Results Section (Initially Hidden) -->
+    <section class="results-section" style="display: none;">
+        <h2>Flight Results</h2>
+        <div id="flightResults"></div>
+    </section>
+
+    <!-- Personal Details Section (Initially Hidden) -->
+    <section class="details-form hide">
+        <h2>Enter Passenger Details</h2>
+        <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" required>
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="firstName">First/Given Name</label>
+            <input type="text" id="firstName" required>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Family Name/Surname</label>
+            <input type="text" id="lastName" required>
+        </div>
+        <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" required>
+        </div>
+        <div class="form-group">
+            <label for="passportNumber">Passport/ID Number</label>
+            <input type="text" id="passportNumber" required>
+        </div>
+        <div class="form-group">
+            <button type="button" onclick="proceedToSeatSelection()">Proceed to Seat Selection</button>
+        </div>
+    </section>
+
+    <!-- Seat Selection Section (Initially Hidden) -->
+    <section class="seat-selection hide">
+        <h2>Select Your Seat</h2>
+        <div class="seat-map">
+            <div class="seat" onclick="selectSeat(this)">1A</div>
+            <div class="seat" onclick="selectSeat(this)">1B</div>
+            <div class="seat" onclick="selectSeat(this)">1C</div>
+            <div class="seat" onclick="selectSeat(this)">2A</div>
+            <div class="seat" onclick="selectSeat(this)">2B</div>
+            <div class="seat" onclick="selectSeat(this)">2C</div>
+        </div>
+        <button onclick="proceedToMealSelection()">Proceed to Meal Selection</button>
+    </section>
+
+    <!-- Meal Selection Section (Initially Hidden) -->
+    <section class="meal-selection-section hide">
+        <h2>Meal Selection</h2>
+        <div class="form-group">
+            <label for="meal-type">Select Meal Type:</label>
+            <div class="meal-options">
+                <div id="vegan" onclick="selectMealType('vegan')">Vegan</div>
+                <div id="seafood" onclick="selectMealType('seafood')">Seafood</div>
+                <div id="other" onclick="selectMealType('other')">Other</div>
+            </div>
+        </div>
+
+        <!-- Vegan Meal Options -->
+        <div class="form-group vegan-options hide">
+            <label>Select Your Vegan Meal:</label>
+            <div class="meal-option">
+                <div id="grilled-vegetables" onclick="selectMealOption('Grilled Vegetables')">Grilled Vegetables</div>
+                <div id="vegan-burger" onclick="selectMealOption('Vegan Burger')">Vegan Burger</div>
+                <div id="tofu-stirfry" onclick="selectMealOption('Tofu Stir-fry')">Tofu Stir-fry</div>
+                <div id="quinoa-salad" onclick="selectMealOption('Quinoa Salad')">Quinoa Salad</div>
+                <div id="lentil-soup" onclick="selectMealOption('Lentil Soup')">Lentil Soup</div>
+            </div>
+        </div>
+
+        <!-- Seafood Meal Options -->
+        <div class="form-group seafood-options hide">
+            <label>Select Your Seafood Meal:</label>
+            <div class="meal-option">
+                <div id="grilled-salmon" onclick="selectMealOption('Grilled Salmon')">Grilled Salmon</div>
+                <div id="shrimp-pasta" onclick="selectMealOption('Shrimp Pasta')">Shrimp Pasta</div>
+                <div id="lobster-bisque" onclick="selectMealOption('Lobster Bisque')">Lobster Bisque</div>
+                <div id="crab-cake" onclick="selectMealOption('Crab Cake')">Crab Cake</div>
+                <div id="tuna-steak" onclick="selectMealOption('Tuna Steak')">Tuna Steak</div>
+            </div>
+        </div>
+
+        <!-- Other Meal Options -->
+        <div class="form-group other-options hide">
+            <label>Select Your Meal:</label>
+            <div class="meal-option">
+                <div id="chicken-meal" onclick="selectMealOption('Chicken Meal')">Chicken Meal</div>
+                <div id="beef-meal" onclick="selectMealOption('Beef Meal')">Beef Meal</div>
+                <div id="halal-meal" onclick="selectMealOption('Halal Meal')">Halal Meal</div>
+                <div id="gluten-free-meal" onclick="selectMealOption('Gluten-Free Meal')">Gluten-Free Meal</div>
+                <div id="pork-free-meal" onclick="selectMealOption('Pork-Free Meal')">Pork-Free Meal</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <button type="button" onclick="proceedToConfirm()">Confirm Meal Selection</button>
+        </div>
+    </section>
+</body>
+
+</html>
