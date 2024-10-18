@@ -29,7 +29,8 @@
         .results-section,
         .details-form,
         .seat-selection,
-        .meal-selection-section {
+        .meal-selection-section,
+        .confirmation-section {
             max-width: 800px;
             margin: 50px auto;
             background-color: white;
@@ -139,6 +140,29 @@
         .hide {
             display: none;
         }
+
+        .confirmation-section {
+            text-align: center;
+        }
+
+        .confirmation-section h2 {
+            margin-bottom: 20px;
+        }
+
+        .confirmation-details {
+            text-align: left;
+            margin: 0 auto;
+            width: 80%;
+        }
+
+        .confirmation-details .detail-item {
+            margin-bottom: 10px;
+        }
+
+        .confirmation-details .detail-item strong {
+            display: inline-block;
+            width: 150px;
+        }
     </style>
     <script>
         let selectedFlight;
@@ -163,7 +187,6 @@
                 document.querySelector('.search-section').style.display = 'none';
                 document.querySelector('.results-section').style.display = 'block';
 
-                // Example: Multiple flight times
                 const flights = [
                     { time: "09:00 AM", price: 1919 },
                     { time: "12:00 PM", price: 2019 },
@@ -171,7 +194,7 @@
                 ];
 
                 const resultsContainer = document.getElementById('flightResults');
-                resultsContainer.innerHTML = ''; // Clear any previous results
+                resultsContainer.innerHTML = '';
                 flights.forEach((flight, index) => {
                     const flightCard = document.createElement('div');
                     flightCard.className = 'result-card';
@@ -197,7 +220,7 @@
         function selectFlight(index) {
             selectedFlight = index;
             document.querySelector('.results-section').style.display = 'none';
-            document.querySelector('.details-form').classList.remove('hide'); // Show details form
+            document.querySelector('.details-form').classList.remove('hide');
         }
 
         function selectSeat(seat) {
@@ -220,7 +243,7 @@
             }
 
             document.querySelector('.details-form').classList.add('hide');
-            document.querySelector('.seat-selection').classList.remove('hide'); // Show seat selection
+            document.querySelector('.seat-selection').classList.remove('hide');
         }
 
         function proceedToMealSelection() {
@@ -229,7 +252,7 @@
                 return;
             }
             document.querySelector('.seat-selection').classList.add('hide');
-            document.querySelector('.meal-selection-section').classList.remove('hide'); // Show meal selection
+            document.querySelector('.meal-selection-section').classList.remove('hide');
         }
 
         function selectMealType(type) {
@@ -269,7 +292,28 @@
                 return;
             }
 
-            alert(`Meal selected: ${selectedMealType}, Option: ${selectedMealOption}. Seat: ${selectedSeat.textContent}`);
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+            const passportNumber = document.getElementById("passportNumber").value;
+
+            if (!firstName || !lastName || !passportNumber) {
+                alert("Please fill in all the required details.");
+                return;
+            }
+
+            const fullName = `${firstName} ${lastName}`;
+            const seatNumber = selectedSeat.textContent;
+            const totalPrice = 1919; // Example price, replace this dynamically if needed
+
+            document.querySelector('.meal-selection-section').classList.add('hide');
+            document.querySelector('.confirmation-section').classList.remove('hide');
+
+            // Display the confirmation details
+            document.getElementById('confirmName').textContent = fullName;
+            document.getElementById('confirmSeat').textContent = seatNumber;
+            document.getElementById('confirmMeal').textContent = `${selectedMealType}, ${selectedMealOption}`;
+            document.getElementById('confirmPassport').textContent = passportNumber;
+            document.getElementById('confirmPrice').textContent = `$${totalPrice}`;
         }
 
         window.onload = displayResults;
@@ -419,6 +463,18 @@
 
         <div class="form-group">
             <button type="button" onclick="proceedToConfirm()">Confirm Meal Selection</button>
+        </div>
+    </section>
+
+    <!-- Confirmation Section -->
+    <section class="confirmation-section hide">
+        <h2>Booking Confirmation</h2>
+        <div class="confirmation-details">
+            <div class="detail-item"><strong>Name:</strong> <span id="confirmName"></span></div>
+            <div class="detail-item"><strong>Seat:</strong> <span id="confirmSeat"></span></div>
+            <div class="detail-item"><strong>Meal:</strong> <span id="confirmMeal"></span></div>
+            <div class="detail-item"><strong>Passport:</strong> <span id="confirmPassport"></span></div>
+            <div class="detail-item"><strong>Total Price:</strong> <span id="confirmPrice"></span></div>
         </div>
     </section>
 </body>
